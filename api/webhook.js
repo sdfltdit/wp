@@ -300,15 +300,21 @@ const urlObj = new URL(req.url, `https://${req.headers.host}`);
   const action = urlObj.searchParams.get("action");
 
   // WhatsApp webhook verification — check this FIRST before admin panel
-if (req.method === "GET" && req.query["hub.mode"] === "subscribe") {
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-  if (token === process.env.VERIFY_TOKEN) {
-    return res.status(200).send(challenge);
+module.exports = async function handler(req, res) {
+  // Webhook verification - MUST BE FIRST
+  if (req.method === "GET") {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+    
+    if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+      console.log("Webhook verified!");
+      return res.status(200).send(challenge);
+    }
+    if (mode) {
+      return res.status(403).send("Forbidden");
+    }
   }
-  return res.status(403).send("Forbidden");
-}
-
   // Serve admin panel
   if (!action && method === "GET") {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
