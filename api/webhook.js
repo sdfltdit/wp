@@ -300,13 +300,14 @@ const urlObj = new URL(req.url, `https://${req.headers.host}`);
   const action = urlObj.searchParams.get("action");
 
   // WhatsApp webhook verification — check this FIRST before admin panel
- if (method === "GET" && req.query["hub.mode"]) {
-  const mode = req.query["hub.mode"];
+if (req.method === "GET" && req.query["hub.mode"] === "subscribe") {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
-    }
-    return res.status(403).send("Forbidden");
+  if (token === process.env.VERIFY_TOKEN) {
+    return res.status(200).send(challenge);
   }
+  return res.status(403).send("Forbidden");
+}
 
   // Serve admin panel
   if (!action && method === "GET") {
