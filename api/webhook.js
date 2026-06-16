@@ -299,6 +299,17 @@ module.exports = async function handler(req, res) {
   const urlObj = new URL(url, `https://${req.headers.host}`);
   const action = urlObj.searchParams.get("action");
 
+  // WhatsApp webhook verification — check this FIRST before admin panel
+  if (method === "GET" && urlObj.searchParams.get("hub.mode")) {
+    const mode = urlObj.searchParams.get("hub.mode");
+    const token = urlObj.searchParams.get("hub.verify_token");
+    const challenge = urlObj.searchParams.get("hub.challenge");
+    if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+      return res.status(200).send(challenge);
+    }
+    return res.status(403).send("Forbidden");
+  }
+
   // Serve admin panel
   if (!action && method === "GET") {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -342,16 +353,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // WhatsApp webhook verification
-  if (method === "GET") {
-    const mode = urlObj.searchParams.get("hub.mode");
-    const token = urlObj.searchParams.get("hub.verify_token");
-    const challenge = urlObj.searchParams.get("hub.challenge");
-    if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-      return res.status(200).send(challenge + '');
-    }
-    return res.status(403).send("Forbidden");
-  }
+
 
   // WhatsApp incoming messages
   if (method === "POST") {
