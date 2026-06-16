@@ -295,26 +295,21 @@ setInterval(() => { if (ADMIN_TOKEN) loadMessages(); }, 30000);
 // MAIN HANDLER
 // ─────────────────────────────────────────────
 module.exports = async function handler(req, res) {
-  const method = req.method;
-const urlObj = new URL(req.url, `https://${req.headers.host}`);
+  const { url, method } = req;
+  const urlObj = new URL(url, `https://${req.headers.host}`);
   const action = urlObj.searchParams.get("action");
 
-  // WhatsApp webhook verification — check this FIRST before admin panel
-module.exports = async function handler(req, res) {
-  // Webhook verification - MUST BE FIRST
-  if (req.method === "GET") {
-    const mode = req.query["hub.mode"];
-    const token = req.query["hub.verify_token"];
-    const challenge = req.query["hub.challenge"];
-    
-    if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-      console.log("Webhook verified!");
+  // ✅ WhatsApp webhook verification — MUST BE FIRST
+  if (method === "GET" && urlObj.searchParams.get("hub.mode") === "subscribe") {
+    const token = urlObj.searchParams.get("hub.verify_token");
+    const challenge = urlObj.searchParams.get("hub.challenge");
+    if (token === process.env.VERIFY_TOKEN) {
+      console.log("✅ Webhook verified!");
       return res.status(200).send(challenge);
     }
-    if (mode) {
-      return res.status(403).send("Forbidden");
-    }
+    return res.status(403).send("Forbidden");
   }
+
   // Serve admin panel
   if (!action && method === "GET") {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -357,8 +352,6 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: e.message });
     }
   }
-
-
 
   // WhatsApp incoming messages
   if (method === "POST") {
