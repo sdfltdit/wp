@@ -295,8 +295,8 @@ setInterval(() => { if (ADMIN_TOKEN) loadMessages(); }, 30000);
 // MAIN HANDLER
 // ─────────────────────────────────────────────
 module.exports = async function handler(req, res) {
-  const { url, method } = req;
-  const urlObj = new URL(url, `https://${req.headers.host}`);
+  const method = req.method;
+const urlObj = new URL(req.url, `https://${req.headers.host}`);
   const action = urlObj.searchParams.get("action");
 
   // WhatsApp webhook verification — check this FIRST before admin panel
