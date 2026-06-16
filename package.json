@@ -1,0 +1,8 @@
+{
+  "name": "sdf-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "SDF Clothing WhatsApp Business Bot",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0"
+  }
+}
